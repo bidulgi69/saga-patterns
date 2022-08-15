@@ -57,18 +57,15 @@ A central orchestrator sends a command message to each participant, and asynchro
 </tr>
 </table>
 
-- <strong>Compensatable Transaction</strong>
-<br>
+- <strong>Compensatable Transaction</strong><br>
 A transaction that can be rolled back by a compensation transaction 
 <br><br>
-- <strong>Pivot Transaction</strong>
-<br>
+- <strong>Pivot Transaction</strong><br>
 If a pivot transaction is committed, saga will be executed to the end. (stage 6)<br>
 Although it is not a compensatable transaction nor retriable transaction,<br>
 it can be a last compensatable transaction or first retriable transaction.
 <br><br>
-- <strong>Retriable Transaction</strong>
-<br>
+- <strong>Retriable Transaction</strong><br>
 A transaction after the pivot transaction (always succeed)
 <br>
 
@@ -83,7 +80,7 @@ A transaction after the pivot transaction (always succeed)
 2. Launch servers, database and kafka
 
         make run
-3. Wait until the servers to run (<a href="https://github.com/stedolan/jq">jq</a> needed)
+3. Wait until the servers to run (<a href="https://github.com/stedolan/jq">jq</a> required)
 
         ./health-check-servers
 
