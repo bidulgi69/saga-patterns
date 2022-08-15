@@ -1,0 +1,73 @@
+server:
+  port: 8003
+  shutdown: graceful
+
+logging:
+  level:
+    root: info
+
+spring:
+  application:
+    name: restaurant-service
+  data:
+    mongodb:
+      username: root
+      password: root
+      host: localhost
+      port: 27017
+      authentication-database: admin
+      auto-index-creation: true
+      database: restaurant-db
+  cloud:
+    function:
+      definition: orderMessageSubscriber
+    stream:
+      default-binder: kafka
+      default:
+        contentType: application/json
+      bindings:
+        tickets-out-0:
+          destination: orders-reply
+          producer:
+            required-groups:
+              - auditGroup
+        # ...and topic that kitchen service has subscribed
+
+        # consumers
+        orderMessageSubscriber-in-0:
+          destination: order-restaurant
+          group: restaurantGroup
+        orderMessageSubscriber-in-0.consumer:
+          - maxAttempts=3
+          - backOffInitialInterval=500
+          - backOffMaxInterval=1000
+          - backOffMultiplier=2.0
+      kafka:
+        bindings:
+          orderMessageSubscriber-in-0.consumer:
+            - enableDlq=true
+        binder:
+          brokers: localhost
+        defaultBrokerPort: 9092
+  lifecycle:
+    timeout-per-shutdown-phase: 10s
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+  data:
+    mongodb:
+      host: mongodb
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: kafka
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

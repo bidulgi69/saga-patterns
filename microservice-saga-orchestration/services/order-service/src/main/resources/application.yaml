@@ -1,0 +1,81 @@
+server:
+  port: 8001
+  shutdown: graceful
+  error:
+    include-message: always
+
+logging:
+  level:
+    root: info
+spring:
+  application:
+    name: order-service
+  data:
+    mongodb:
+      username: root
+      password: root
+      host: localhost
+      port: 27017
+      authentication-database: admin
+      auto-index-creation: true
+      database: order-db
+  cloud:
+    function:
+      definition: orderReplyMessageSubscriber
+    stream:
+      default-binder: kafka
+      default:
+        contentType: application/json
+      bindings:
+        order-restaurant-out-0:
+          destination: order-restaurant # name of topic
+          producer:
+            required-groups:
+              - auditGroup
+        order-customer-out-0:
+          destination: order-customer
+          producer:
+            required-groups:
+              - auditGroup
+        order-payment-out-0:
+          destination: order-payment
+          producer:
+            required-groups:
+              - auditGroup
+        orderReplyMessageSubscriber-in-0:
+          destination: orders-reply
+          group: orderGroup
+        orderReplyMessageSubscriber-in-0.consumer:
+            - maxAttempts=3
+            - backOffInitialInterval=500
+            - backOffMaxInterval=1000
+            - backOffMultiplier=2.0
+      kafka:
+        bindings:
+          orderReplyMessageSubscriber-in-0.consumer:
+            - enableDlq=true
+        binder:
+          brokers: localhost
+        defaultBrokerPort: 9092
+  lifecycle:
+    timeout-per-shutdown-phase: 10s
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+  data:
+    mongodb:
+      host: mongodb
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: kafka
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
