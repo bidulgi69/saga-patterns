@@ -12,5 +12,5 @@ run:
 
 clean:
 	docker-compose down --remove-orphans && \
+	docker volume rm $$(docker volume ls -qf dangling=true) && \
 	docker rmi $$(docker images | grep -e none -e dove-saga-orchestration)
-	docker volume rm $$(docker volume ls -qf dangling=true)

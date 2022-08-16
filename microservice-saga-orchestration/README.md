@@ -2,7 +2,25 @@
 <span style="font-weight: lighter">
 Orchestration saga is a centralized saga pattern.<br>
 A central orchestrator sends a command message to each participant, and asynchronously receives a response and processes the next step.
-</span>
+</span><br>
+
+## Event Flow
+<img src="https://user-images.githubusercontent.com/17774927/184935990-fa372298-f522-4578-aa80-cb77598cb2c9.png" alt="event flow"></img>
+1. Create pending order and send a `ORDER_CREATED` event to order-customer topic that customer service subscribes to.
+2. Customer service receives an order aggregate and verify the value of customerId field is valid.
+   Sends a `CUSTOMER_APPROVED` event if it is a valid value, or a `CUSTOMER_REJECTED` event if it is not valid.
+3. If a message from order-reply topic tells customerId is verified, <br>
+then send a `ORDER_CREATED` event to order-restaurant topic that restaurant service subscribes to.
+4. Restaurant service receives an order aggregate and creates a pending ticket if available.<br>
+   Sends `TICKET_REJECTED` if ticket creation fails, `TICKET_CREATED` event if successful.
+5. If a message from order-reply topic tells ticket is created successfully, <br>
+then send `ORDER_CREATED` event to order-payment topic that payment service subscribes to.
+6. Payment service receives an order aggregate and approve payment if available.<br>
+Sends `PAYMENT_REJECETED` if payment approval fails, `PAYMENT_APPROVED` event if successful. 
+7. If a message from order-reply topic tells payment is approved, <br>
+then changes state of the order to `ACCEPTED` and send `ORDER_APPROVED` to order-restaurant topic.
+8. Restaurant service receives a `ORDER_APPROVED` event and changes the state of the ticket to `ACCEPTED`.
+<br></br>
 
 ## Saga
 <table style="text-align: left; vertical-align: center; font-weight: lighter">
