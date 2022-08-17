@@ -17,7 +17,7 @@ The event is forwarded through the topic "airlines" that payment service subscri
 4. Payment service receives a ticket aggregate and approve payment if available.<br>
 Sends a `PAYMENT_REJECTED` if payment approval fails, `PAYMENT_APPROVED` event if successful.
 5. `CUSTOER_REJECTED`, `SEAT_REJECTED`, `PAYMENT_REJECTED` events are forwarded through the topic "pivot" and then
-execute the compensation transaction `rejectTicket()`.
+execute the compensation transactions like `rejectTicket()`, `cancelSeat()`.
 <br></br>
 
 ## Saga
