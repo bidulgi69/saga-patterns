@@ -1,0 +1,85 @@
+server:
+  port: 8003
+  shutdown: graceful
+
+logging:
+  level:
+    root: info
+
+spring:
+  application:
+    name: airline-service
+  data:
+    mongodb:
+      username: root
+      password: root
+      host: localhost
+      port: 27017
+      authentication-database: admin
+      auto-index-creation: true
+      database: airline-db
+  cloud:
+    function:
+      definition: customerMessageSubscriber;pivotMessageSubscriber
+    stream:
+      default-binder: kafka
+      default:
+        contentType: application/json
+      bindings:
+        airlines-out-0:
+          destination: airlines
+          producer:
+            required-groups:
+              - auditGroup
+        airlines-out-1:
+          destination: pivot
+          producer:
+            required-groups:
+              - auditGroup
+        customerMessageSubscriber-in-0:
+          destination: customers
+          group: airlineGroup
+        customerMessageSubscriber-in-0.consumer:
+          - maxAttempts=3
+          - backOffInitialInterval=500
+          - backOffMaxInterval=1000
+          - backOffMultiplier=2.0
+        pivotMessageSubscriber-in-0:
+          destination: pivot
+          group: airlineGroup
+        pivotMessageSubscriber-in-0.consumer:
+          - maxAttempts=3
+          - backOffInitialInterval=500
+          - backOffMaxInterval=1000
+          - backOffMultiplier=2.0
+      kafka:
+        bindings:
+          customerMessageSubscriber-in-0.consumer:
+            - enableDlq=true
+          pivotMessageSubscriber-in-0.consumer:
+            - enableDlq=true
+        binder:
+          brokers: localhost
+        defaultBrokerPort: 9092
+  lifecycle:
+    timeout-per-shutdown-phase: 10s
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+  data:
+    mongodb:
+      host: mongodb
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: kafka
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
